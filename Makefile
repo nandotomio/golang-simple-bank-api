@@ -52,4 +52,7 @@ sqlc-init:
 sqlc-generate:
 	docker run --rm -v $(CURRENT_DIR):/src -w /src $(SQLC_IMG) generate
 
-.PHONY: db-up db-down db-drop migrate-create migrate-up migrate-up-1 migrate-down migrate-down-1 sqlc db-connect db-query-all-tables
+test:
+	go test -v -race -cover ./...
+
+.PHONY: db-up db-down db-drop migrate-create migrate-up migrate-up-1 migrate-down migrate-down-1 sqlc-init sqlc-generate db-connect db-query-all-tables test
