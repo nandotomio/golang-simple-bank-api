@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/nandotomio/golang-simple-bank-api/util"
 	"github.com/stretchr/testify/require"
@@ -16,6 +17,10 @@ func mockCreateTransferParams(account1 Account, account2 Account) CreateTransfer
 	}
 }
 
+func makeCreateTransfer(params CreateTransferParams) (Transfer, error) {
+	return testQueries.CreateTransfer(context.Background(), params)
+}
+
 func TestCreateTransfer(t *testing.T) {
 	account1, err := makeCreateAccount(mockCreateAccountParams())
 	require.NoError(t, err)
@@ -25,7 +30,7 @@ func TestCreateTransfer(t *testing.T) {
 	require.NotEmpty(t, account2)
 
 	arg := mockCreateTransferParams(account1, account2)
-	transfer, err := testQueries.CreateTransfer(context.Background(), arg)
+	transfer, err := makeCreateTransfer(arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, transfer)
 
@@ -35,4 +40,26 @@ func TestCreateTransfer(t *testing.T) {
 
 	require.NotZero(t, transfer.ID)
 	require.NotZero(t, transfer.CreatedAt)
+}
+
+func TestGetTransfer(t *testing.T) {
+	account1, err := makeCreateAccount(mockCreateAccountParams())
+	require.NoError(t, err)
+	require.NotEmpty(t, account1)
+	account2, err := makeCreateAccount(mockCreateAccountParams())
+	require.NoError(t, err)
+	require.NotEmpty(t, account2)
+
+	transfer, err := makeCreateTransfer(mockCreateTransferParams(account1, account2))
+	require.NoError(t, err)
+
+	retrievedTransfer, err := testQueries.GetTransfer(context.Background(), transfer.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, retrievedTransfer)
+
+	require.Equal(t, transfer.ID, retrievedTransfer.ID)
+	require.Equal(t, transfer.FromAccountID, retrievedTransfer.FromAccountID)
+	require.Equal(t, transfer.ToAccountID, retrievedTransfer.ToAccountID)
+	require.Equal(t, transfer.Amount, retrievedTransfer.Amount)
+	require.WithinDuration(t, transfer.CreatedAt, retrievedTransfer.CreatedAt, time.Second)
 }
