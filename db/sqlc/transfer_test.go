@@ -63,3 +63,35 @@ func TestGetTransfer(t *testing.T) {
 	require.Equal(t, transfer.Amount, retrievedTransfer.Amount)
 	require.WithinDuration(t, transfer.CreatedAt, retrievedTransfer.CreatedAt, time.Second)
 }
+
+func TestListTransfer(t *testing.T) {
+	account1, err := makeCreateAccount(mockCreateAccountParams())
+	require.NoError(t, err)
+	require.NotEmpty(t, account1)
+	account2, err := makeCreateAccount(mockCreateAccountParams())
+	require.NoError(t, err)
+	require.NotEmpty(t, account2)
+
+	for i := 0; i < 5; i++ {
+		_, err := makeCreateTransfer(mockCreateTransferParams(account1, account2))
+		require.NoError(t, err)
+		_, err = makeCreateTransfer(mockCreateTransferParams(account2, account1))
+		require.NoError(t, err)
+	}
+
+	arg := ListTransfersParams{
+		FromAccountID: account1.ID,
+		ToAccountID:   account1.ID,
+		Limit:         5,
+		Offset:        5,
+	}
+
+	transfers, err := testQueries.ListTransfers(context.Background(), arg)
+	require.NoError(t, err)
+	require.Len(t, transfers, 5)
+
+	for _, transfer := range transfers {
+		require.NotEmpty(t, transfer)
+		require.True(t, transfer.FromAccountID == account1.ID || transfer.ToAccountID == account1.ID)
+	}
+}
