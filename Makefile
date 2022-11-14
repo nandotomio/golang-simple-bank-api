@@ -1,3 +1,5 @@
+include .env
+
 # --- Directories and files ---
 CURRENT_DIR=$(shell pwd)
 MIGRATION_DIR="$(CURRENT_DIR)/db/migrations"
@@ -10,7 +12,6 @@ SQLC_IMG="kjconroy/sqlc:1.15.0"
 
 # --- Default values ---
 MIGRATION_NAME="schema"
-POSTGRES_URL="postgresql://simple_bank:please_change@localhost:5432/simple_bank?sslmode=disable"
 
 # --- Functions ---
 exec_postgres=docker exec -it postgres psql -U simple_bank -c $(1)
