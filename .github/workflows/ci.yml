@@ -8,17 +8,37 @@ on:
 
 jobs:
 
-  build:
+  test:
     name: Test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14.5-alpine3.16
+        env:
+          POSTGRES_USER: simple_bank
+          POSTGRES_PASSWORD: please_change
+          POSTGRES_DB: simple_bank
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-    - uses: actions/checkout@v3
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v3
 
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
         go-version: 1.17
       id: go
+
+    - name: Run migrations
+      run: make migrate-up
 
     - name: Test
       run: make test
